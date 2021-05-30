@@ -54,14 +54,54 @@ describe('Test suite for FluentSQL Builder', () => {
   })
 
   it('should return only specific fields', () => {
+    const expected = data.map(({ name, category }) => ({ name, category }))
 
+    const result = FluentSQLBuilder.for(data).select(['name', 'category']).build();
+
+    expect(result).toEqual(expected);
   })
 
   it('should return order results by specific fields', () => {
+    const expected = [...data]
     
+    expected.sort((a, b) => {
+      if ( a.category < b.category ){
+        return -1;
+      }
+
+      if ( a.category > b.category ){
+        return 1;
+      }
+
+      return 0;
+    });
+
+    const result = FluentSQLBuilder.for(data).orderBy('category').build();
+
+    expect(result).toEqual(expected);
   })
 
   it('should combine operations', () => {
+    const expected = data
+      .filter(({ category, name }) => {
+        return category.includes('cat') && name.includes('ame')
+      })
+      .slice(0, 2)
+      .map(({ id, name}) => ({ id, name}));
 
+    const result = FluentSQLBuilder
+      .for(data)
+      .select(['id', 'name'])
+      .where({
+        category: 'cat'
+      })
+      .where({
+        name: 'ame',
+      })
+      .orderBy('name')
+      .limit(2)
+      .build();
+
+    expect(result).toEqual(expected);
   })
 });

@@ -61,6 +61,30 @@ export class FluentSQLBuilder {
     return true;
   }
 
+  #performSelect(item) {
+    if(!this.#select || !this.#select.length) return item;
+
+    const currentItem = {}
+
+    const entries = Object.entries(item);
+
+    for(const [key, value] of entries) {
+      if(this.#select.includes(key)) {
+        currentItem[key] = value;
+      }
+    }
+
+    return currentItem;
+  }
+
+  #performOrderBy(results) {
+    if(!this.#orderBy) return results;
+
+    return results.sort((prev, next) => {
+      return prev[this.#orderBy].localeCompare(next[this.#orderBy]);
+    })
+  }
+
   build() {
     const results = [];
 
@@ -69,13 +93,16 @@ export class FluentSQLBuilder {
         continue;
       }
 
-      results.push(item);
+      const currentItem = this.#performSelect(item);
+      results.push(currentItem);
 
       if(this.#performLimit(results)) {
         break;
       }
     }
 
-    return results;
+    const finalResult = this.#performOrderBy(results);
+
+    return finalResult;
   }
 }
